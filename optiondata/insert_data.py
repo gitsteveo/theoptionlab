@@ -43,10 +43,11 @@ def insert(underlyings, dir):
             if file.endswith(".zip"): 
     
                 index = file.index('_') + 1
-                datestring = file[index : (index + 10)]
-                
-                date = datetime.strptime(datestring, '%Y-%m-%d').date()
+                #datestring = file[index : (index + 10)]
+                datestring = file[index : (index + 7)] +"-01" # monthly file format
 
+                date = datetime.strptime(datestring, '%Y-%m-%d').date()
+                #date = datetime.strptime(datestring, '%Y-%m').date() # monthly files
                 
                 unzippedpath = "" 
                 
@@ -72,7 +73,10 @@ def insert(underlyings, dir):
                                 df = pd.read_csv(unzippedpath, header=0, dtype={"underlying_symbol": object, "quote_date": object, "root": object, "expiration": object, "strike": np.float64, "option_type": object, "open": np.float64, "high": np.float64, "low": np.float64, "close": np.float64, "trade_volume": np.int64, "bid_size_1545": np.int64, "bid_1545": np.float64, "ask_size_1545": np.int64, "ask_1545": np.float64, "underlying_bid_1545": np.float64, "underlying_ask_1545": np.float64, "bid_size_eod": np.int64, "bid_eod": np.float64, "ask_size_eod": np.int64, "ask_eod": np.float64, "underlying_bid_eod": np.float64, "underlying_ask_eod": np.float64, "vwap": object, "open_interest": np.float64, "delivery_code": object})                                    
                                 
                                 filtered = df[(df['underlying_symbol'] == underlying)]
-                                
+
+                                # fix outliers
+                                filtered['trade_volume'] = filtered['trade_volume'].apply(lambda x: x if x <= 10000000 else 10000000)
+
                                 if underlying == "^SPX": 
                                     filtered = filtered[(filtered.root != 'BSZ') & (filtered.root != 'BSK') ]  # filter out binary options                    
                                 
